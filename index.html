@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZAZOJUEGO DE CUMPLEAÑOS</title>
+    <style>
+        :root {
+            --gold: #ffd700;
+            --red: #ff4d4d;
+            --blue: #00d2ff;
+            --pink: #ff007f;
+            --envelope-bg: #fffcf2;
+            --bg-base: #1a1a2e;
+            --bg-gradient:
+                radial-gradient(circle at 10% 10%, rgba(255,215,0,0.15) 2px, transparent 4px),
+                radial-gradient(circle at 30% 25%, rgba(0,210,255,0.1) 3px, transparent 5px),
+                radial-gradient(circle at 80% 15%, rgba(255,77,77,0.1) 2px, transparent 4px),
+                radial-gradient(circle at 60% 70%, rgba(255,0,127,0.1) 4px, transparent 6px),
+                radial-gradient(circle at 20% 80%, rgba(0,210,255,0.1) 2px, transparent 4px),
+                radial-gradient(circle at 0% 0%, var(--gold) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, var(--pink) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, var(--blue) 0%, transparent 50%),
+                linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            background: var(--bg-gradient);
+            background-color: var(--bg-base);
+            color: white;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            background-attachment: fixed;
+            background-size: cover;
+            overflow: hidden;
+        }
+
+        /* --- SECCIÓN JUEGO --- */
+        #game-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: clamp(1.8rem, 5vw, 3.5rem);
+            color: var(--gold);
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 3px 3px 0px #000;
+            margin-bottom: 50px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            z-index: 300; 
+            transition: transform 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        /* Título en la coreografía final */
+        .all-revealed h1 {
+            transform: translateY(calc(-220px + 1cm));
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            width: 100%;
+            max-width: 1000px;
+            justify-items: center;
+            z-index: 5;
+        }
+
+        .envelope-container {
+            width: 100%;
+            max-width: 420px;
+            height: 260px;
+            perspective: 1500px;
+            cursor: pointer;
+            transition: all 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        /* --- COREOGRAFÍA FINAL --- */
+        .all-revealed #env-1, .all-revealed #env-2 {
+            transform: translateY(calc(-2.5cm - 80px)); 
+        }
+        .all-revealed #env-3, .all-revealed #env-4 {
+            transform: translateY(calc(-2cm + 80px)); 
+        }
+
+        .envelope-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .flipped .envelope-inner { transform: rotateY(180deg); }
+
+        .front, .back {
+            position: absolute;
+            width: 100%; height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px; border: 8px solid #fff;
+            display: flex; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            box-sizing: border-box;
+        }
+
+        .front { 
+            background-color: var(--envelope-bg); 
+            z-index: 2; 
+            overflow: hidden; 
+            flex-direction: column;
+            justify-content: flex-end; 
+            align-items: center;
+            padding-bottom: 35px; 
+        }
+
+        .front::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 0; height: 0;
+            border-style: solid; border-width: 110px 200px 0 200px;
+            border-color: #f0f0f0 transparent transparent transparent;
+            z-index: 1;
+        }
+
+        .back {
+            background: radial-gradient(circle, #fff 0%, #fdf2d5 100%);
+            transform: rotateY(180deg); 
+            padding: 25px; 
+            color: #1a1a1a;
+            text-align: center; 
+            border-color: var(--gold);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .prize-highlight {
+            display: block; margin-top: 10px; color: #d32f2f;
+            font-size: 1.1rem; text-transform: uppercase;
+            border-top: 2px dashed #ccc; padding-top: 8px; font-weight: bold;
+        }
+
+        .title-env { 
+            font-weight: 900; 
+            font-size: 1.2rem; 
+            text-align: center; 
+            color: #1a1a1a; 
+            text-transform: uppercase;
+            padding: 0 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .dimmed { opacity: 0.15; filter: grayscale(1); transform: scale(0.95); }
+        .sticker { position: absolute; bottom: 10px; right: 10px; background: var(--red); color: white; padding: 5px 12px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; transform: rotate(-3deg); z-index: 3; }
+
+        /* --- BOTÓN FINAL --- */
+        #final-button {
+            opacity: 0; visibility: hidden; position: fixed;
+            top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.1);
+            z-index: 150; padding: 25px 60px; font-size: clamp(1.2rem, 3.5vw, 2.2rem);
+            font-weight: bold; text-transform: uppercase; color: #1a1a1a;
+            background: linear-gradient(to bottom, #fff7ad 0%, #ffa73d 50%, #ff7c00 100%);
+            border: 6px solid #fff; border-radius: 70px; cursor: pointer;
+            transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            white-space: nowrap;
+        }
+
+        #final-button.show {
+            opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1);
+            animation: pulse-final 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-final {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 30px var(--gold); }
+            50% { transform: translate(-50%, -50%) scale(1.05); box-shadow: 0 0 80px var(--gold); }
+        }
+
+        /* --- PANTALLA DE CELEBRACIÓN --- */
+        #celebration-view {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #ff007f, #302b63);
+            z-index: 1000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        #celebration-view.active { display: flex; animation: fadeIn 1s forwards; }
+
+        .celebration-text {
+            font-size: clamp(2rem, 6vw, 4rem);
+            font-weight: 900;
+            color: var(--gold);
+            text-shadow: 4px 4px 0px #000, 0 0 30px rgba(255,215,0,0.5);
+            max-width: 80%;
+            line-height: 1.2;
+            z-index: 1010;
+        }
+
+        .floating-element {
+            position: absolute;
+            font-size: 3rem;
+            user-select: none;
+            animation: floatUp 6s linear infinite;
+            bottom: -100px;
+            z-index: 1005;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        @media (max-width: 850px) {
+            .game-board { grid-template-columns: 1fr; }
+            .all-revealed #env-1, .all-revealed #env-2 { transform: translateY(-110px); }
+            .all-revealed #env-3, .all-revealed #env-4 { transform: translateY(20px); }
+            .all-revealed h1 { transform: translateY(-70px); }
+        }
+    </style>
+</head>
+<body id="main-body">
+
+    <div id="game-view">
+        <h1>ZAZOJUEGO DE CUMPLEAÑOS</h1>
+
+        <div class="game-board">
+            <div class="envelope-container" id="env-1" onclick="toggleEnvelope(this, 1)">
+                <div class="envelope-inner">
+                    <div class="front">
+                        <div class="title-env">OPCIÓN 1<br><br>QUIERO SEGUIR MI SUEÑO LABORAL</div>
+                        <div class="sticker">CONFIDENCIAL</div>
+                    </div>
+                    <div class="back">
+                        <div class="prize-text">¡Felicidades!<br>Has escogido perseguir tu sueño de convertirte en un fantástico <strong>PIZZARIOLO</strong>.<br><span class="prize-highlight">🥁 HORNO DE GAS ONLYFIRE</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="envelope-container" id="env-2" onclick="toggleEnvelope(this, 2)">
+                <div class="envelope-inner">
+                    <div class="front">
+                        <div class="title-env">OPCIÓN 2<br><br>QUIERO RETROCEDER 2000 AÑOS</div>
+                        <div class="sticker">TOP SECRET</div>
+                    </div>
+                    <div class="back">
+                        <div class="prize-text">¡Felicidades Migue!<br>Has escogido un viaje a <strong>ISLANDIA</strong>.<br><span class="prize-highlight">✈️ PASAJE BUSINESS IDA/VUELTA</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="envelope-container" id="env-3" onclick="toggleEnvelope(this, 3)">
+                <div class="envelope-inner">
+                    <div class="front">
+                        <div class="title-env">OPCIÓN 3<br><br>QUIÉN HA ENCENDIDO LA LUZ</div>
+                        <div class="sticker">RESERVADO</div>
+                    </div>
+                    <div class="back">
+                        <div class="prize-text">¡Qué gran elección Migue!<br>Has escogido ver las <strong>AURORAS BOREALES</strong> en Noruega.<br><span class="prize-highlight">✨ ACTUALIZACIÓN CLASE SUPERIOR</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="envelope-container" id="env-4" onclick="toggleEnvelope(this, 4)">
+                <div class="envelope-inner">
+                    <div class="front">
+                        <div class="title-env">OPCIÓN 4<br><br>JUEGO DE LA OCA ESTIVAL</div>
+                        <div class="sticker">¡SORPRESA!</div>
+                    </div>
+                    <div class="back">
+                        <div class="prize-text">"¡No por ser la última soy la peor!"<br>Has escogido un viaje a <strong>IBIZA</strong>.<br><span class="prize-highlight">🍾 BOTELLA VIP EN FIESTA</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button id="final-button" onclick="startCelebration()">
+        🥁🥁🥁 Miguelillo escoge sabiamente y pinchame 🥁🥁🥁
+    </button>
+
+    <div id="celebration-view">
+        <div class="celebration-text">
+            Tremenda elección seguro que será toda una experiencia la que viviremos juntos
+        </div>
+    </div>
+
+    <script>
+        const openedEnvelopes = new Set();
+
+        function toggleEnvelope(element, id) {
+            const isFlipped = element.classList.contains('flipped');
+            const allEnvelopes = document.querySelectorAll('.envelope-container');
+            const body = document.getElementById('main-body');
+            const btn = document.getElementById('final-button');
+
+            if (isFlipped) {
+                // ACCIÓN DE CERRAR SOBRE
+                element.classList.remove('flipped');
+                allEnvelopes.forEach(env => env.classList.remove('dimmed'));
+
+                // CAMBIO CLAVE: Comprobar si ya se han visto los 4 antes de mostrar el final
+                if (openedEnvelopes.size === 4) {
+                    setTimeout(() => {
+                        body.classList.add('all-revealed');
+                        btn.classList.add('show');
+                    }, 500); // Pequeña pausa tras cerrar para que se aprecie el movimiento
+                }
+            } else {
+                // ACCIÓN DE ABRIR SOBRE
+                allEnvelopes.forEach(env => {
+                    if (env === element) {
+                        env.classList.add('flipped');
+                        env.classList.remove('dimmed');
+                        openedEnvelopes.add(id);
+                    } else {
+                        env.classList.add('dimmed');
+                    }
+                });
+            }
+        }
+
+        function startCelebration() {
+            document.getElementById('game-view').style.display = 'none';
+            document.getElementById('final-button').style.display = 'none';
+            const celebView = document.getElementById('celebration-view');
+            celebView.classList.add('active');
+
+            const icons = ['🎈', '🎉', '🎂', '🎊', '✨', '🎁', '🍰', '🥳'];
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const el = document.createElement('div');
+                    el.className = 'floating-element';
+                    el.innerText = icons[Math.floor(Math.random() * icons.length)];
+                    el.style.left = Math.random() * 100 + 'vw';
+                    el.style.animationDuration = (Math.random() * 3 + 4) + 's';
+                    el.style.fontSize = (Math.random() * 2 + 2) + 'rem';
+                    celebView.appendChild(el);
+                    setTimeout(() => el.remove(), 7000);
+                }, i * 150);
+            }
+        }
+    </script>
+
+</body>
+</html>
