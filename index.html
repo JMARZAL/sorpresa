@@ -30,16 +30,17 @@
             background-color: var(--bg-base);
             color: white;
             margin: 0;
-            min-height: 100vh;
+            min-height: 100vh; /* Permite que el cuerpo crezca */
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
+            justify-content: flex-start; /* Alinea al inicio para permitir el scroll natural */
+            padding: 40px 20px;
             box-sizing: border-box;
             background-attachment: fixed;
             background-size: cover;
-            overflow: hidden;
+            overflow-x: hidden; /* Evita scroll lateral por las animaciones */
+            overflow-y: auto;   /* ¡CLAVE! Permite scroll vertical en móviles */
         }
 
         /* --- SECCIÓN JUEGO --- */
@@ -47,8 +48,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            transition: opacity 0.8s ease, transform 0.8s ease;
             width: 100%;
+            transition: opacity 0.8s ease;
         }
 
         h1 {
@@ -56,7 +57,7 @@
             font-size: clamp(1.8rem, 5vw, 3.5rem);
             color: var(--gold);
             text-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 3px 3px 0px #000;
-            margin-bottom: 50px;
+            margin-bottom: 60px;
             text-transform: uppercase;
             letter-spacing: 4px;
             z-index: 300; 
@@ -87,7 +88,7 @@
             transition: all 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
-        /* --- COREOGRAFÍA FINAL --- */
+        /* --- COREOGRAFÍA FINAL ESCRITORIO --- */
         .all-revealed #env-1, .all-revealed #env-2 {
             transform: translateY(calc(-2.5cm - 80px)); 
         }
@@ -167,7 +168,7 @@
         #final-button {
             opacity: 0; visibility: hidden; position: fixed;
             top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.1);
-            z-index: 150; padding: 25px 60px; font-size: clamp(1.2rem, 3.5vw, 2.2rem);
+            z-index: 500; padding: 25px 60px; font-size: clamp(1.1rem, 3.5vw, 2.2rem);
             font-weight: bold; text-transform: uppercase; color: #1a1a1a;
             background: linear-gradient(to bottom, #fff7ad 0%, #ffa73d 50%, #ff7c00 100%);
             border: 6px solid #fff; border-radius: 70px; cursor: pointer;
@@ -202,13 +203,14 @@
         #celebration-view.active { display: flex; animation: fadeIn 1s forwards; }
 
         .celebration-text {
-            font-size: clamp(2rem, 6vw, 4rem);
+            font-size: clamp(1.8rem, 6vw, 4rem);
             font-weight: 900;
             color: var(--gold);
             text-shadow: 4px 4px 0px #000, 0 0 30px rgba(255,215,0,0.5);
-            max-width: 80%;
+            max-width: 90%;
             line-height: 1.2;
             z-index: 1010;
+            padding: 20px;
         }
 
         .floating-element {
@@ -227,11 +229,30 @@
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        /* --- RESPONSIVE / MÓVIL --- */
         @media (max-width: 850px) {
-            .game-board { grid-template-columns: 1fr; }
-            .all-revealed #env-1, .all-revealed #env-2 { transform: translateY(-110px); }
-            .all-revealed #env-3, .all-revealed #env-4 { transform: translateY(20px); }
-            .all-revealed h1 { transform: translateY(-70px); }
+            .game-board { 
+                grid-template-columns: 1fr; /* Una columna en móvil */
+                gap: 20px;
+            }
+            
+            /* Suavizar la coreografía en móvil para no romper el scroll */
+            .all-revealed #env-1, .all-revealed #env-2 { transform: translateY(-30px); }
+            .all-revealed #env-3, .all-revealed #env-4 { transform: translateY(30px); }
+            .all-revealed h1 { transform: translateY(-20px); }
+            
+            .envelope-container { 
+                height: 220px; 
+                max-width: 320px; 
+            }
+            
+            .front::before { border-width: 80px 150px 0 150px; }
+            
+            #final-button { 
+                padding: 15px 30px; 
+                width: 85%;
+                font-size: 1.2rem;
+            }
         }
     </style>
 </head>
@@ -292,7 +313,7 @@
     </div>
 
     <button id="final-button" onclick="startCelebration()">
-        🥁🥁🥁 Miguelillo escoge sabiamente y pinchame 🥁🥁🥁
+        🥁🥁🥁 ¿Qué escoges? 🥁🥁🥁
     </button>
 
     <div id="celebration-view">
@@ -311,19 +332,19 @@
             const btn = document.getElementById('final-button');
 
             if (isFlipped) {
-                // ACCIÓN DE CERRAR SOBRE
+                // AL CERRAR
                 element.classList.remove('flipped');
                 allEnvelopes.forEach(env => env.classList.remove('dimmed'));
 
-                // CAMBIO CLAVE: Comprobar si ya se han visto los 4 antes de mostrar el final
+                // Si ya se han abierto los 4, al cerrar el último sale el final
                 if (openedEnvelopes.size === 4) {
                     setTimeout(() => {
                         body.classList.add('all-revealed');
                         btn.classList.add('show');
-                    }, 500); // Pequeña pausa tras cerrar para que se aprecie el movimiento
+                    }, 500); 
                 }
             } else {
-                // ACCIÓN DE ABRIR SOBRE
+                // AL ABRIR
                 allEnvelopes.forEach(env => {
                     if (env === element) {
                         env.classList.add('flipped');
@@ -337,24 +358,30 @@
         }
 
         function startCelebration() {
-            document.getElementById('game-view').style.display = 'none';
-            document.getElementById('final-button').style.display = 'none';
-            const celebView = document.getElementById('celebration-view');
-            celebView.classList.add('active');
+            // Ir al inicio antes de la celebración por si hubo scroll
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            setTimeout(() => {
+                document.getElementById('game-view').style.display = 'none';
+                document.getElementById('final-button').style.display = 'none';
+                const celebView = document.getElementById('celebration-view');
+                celebView.classList.add('active');
 
-            const icons = ['🎈', '🎉', '🎂', '🎊', '✨', '🎁', '🍰', '🥳'];
-            for (let i = 0; i < 50; i++) {
-                setTimeout(() => {
-                    const el = document.createElement('div');
-                    el.className = 'floating-element';
-                    el.innerText = icons[Math.floor(Math.random() * icons.length)];
-                    el.style.left = Math.random() * 100 + 'vw';
-                    el.style.animationDuration = (Math.random() * 3 + 4) + 's';
-                    el.style.fontSize = (Math.random() * 2 + 2) + 'rem';
-                    celebView.appendChild(el);
-                    setTimeout(() => el.remove(), 7000);
-                }, i * 150);
-            }
+                // Lluvia de elementos
+                const icons = ['🎈', '🎉', '🎂', '🎊', '✨', '🎁', '🍰', '🥳'];
+                for (let i = 0; i < 50; i++) {
+                    setTimeout(() => {
+                        const el = document.createElement('div');
+                        el.className = 'floating-element';
+                        el.innerText = icons[Math.floor(Math.random() * icons.length)];
+                        el.style.left = Math.random() * 100 + 'vw';
+                        el.style.animationDuration = (Math.random() * 3 + 4) + 's';
+                        el.style.fontSize = (Math.random() * 2 + 2) + 'rem';
+                        celebView.appendChild(el);
+                        setTimeout(() => el.remove(), 7000);
+                    }, i * 150);
+                }
+            }, 300);
         }
     </script>
 
